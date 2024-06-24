@@ -14,19 +14,17 @@ def translate_text(text, lang):
 st.title("XLF Translator")
 
 # Language selection
-lang = st.selectbox("Select language:", ['Svensk', 'Norsk', 'Dansk'])
+st.write("Select the target language for translation:")
+lang = st.selectbox("Language:", ['Svensk', 'Norsk', 'Dansk'])
 lang_code = {'Svensk': 'sv', 'Norsk': 'no', 'Dansk': 'da'}[lang]
 
 # Input file selection
 input_file = st.file_uploader("Select input XLF file", type="xlf")
 
-# Output folder selection
-output_folder = st.text_input("Select output folder path")
-
 # Start translation button
 if st.button("Start Translation"):
-    if not input_file or not output_folder:
-        st.error("Input file or output folder not selected. Exiting.")
+    if not input_file:
+        st.error("No input file selected. Exiting.")
     else:
         # Read the content of the file
         lines = input_file.read().decode('utf-8').splitlines()
@@ -58,8 +56,17 @@ if st.button("Start Translation"):
                 st.write(f'Translated {i}/{total_lines} lines')
 
         # Write the translated content to a new file
-        output_file_path = os.path.join(output_folder, f'BeCentral.{lang_code}.xlf')
+        output_file_name = f'BeCentral.{lang_code}.xlf'
+        output_file_path = os.path.join("/tmp", output_file_name)
         with open(output_file_path, 'w', encoding='utf-8') as file:
             file.writelines(translated_lines)
 
-        st.success(f'Translation completed. Translated file saved to {output_file_path}')
+        with open(output_file_path, 'rb') as file:
+            btn = st.download_button(
+                label="Download Translated XLF File",
+                data=file,
+                file_name=output_file_name,
+                mime='application/octet-stream'
+            )
+
+        st.success("Translation completed. Click the button above to download the file.")
