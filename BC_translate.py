@@ -33,6 +33,7 @@ if st.button("Start Translation"):
         translated_lines = []
         total_lines = len(lines)
         skip_next_line = False
+        translated_count = 0
 
         for i, line in enumerate(lines):
             if skip_next_line:
@@ -47,6 +48,7 @@ if st.button("Start Translation"):
                 translated_text = translate_text(source_text, lang_code)
                 translated_lines.append(f'          <source>{source_text}</source>\n')
                 translated_lines.append(f'          <target>{translated_text}</target>\n')
+                translated_count += 1
                 skip_next_line = True
             else:
                 translated_lines.append(line)
@@ -61,6 +63,8 @@ if st.button("Start Translation"):
         with open(output_file_path, 'w', encoding='utf-8') as file:
             file.writelines(translated_lines)
 
+        st.success(f"Translation completed. Translated {translated_count} out of {total_lines} lines.")
+        
         with open(output_file_path, 'rb') as file:
             btn = st.download_button(
                 label="Download Translated XLF File",
@@ -68,5 +72,3 @@ if st.button("Start Translation"):
                 file_name=output_file_name,
                 mime='application/octet-stream'
             )
-
-        st.success("Translation completed. Click the button above to download the file.")
