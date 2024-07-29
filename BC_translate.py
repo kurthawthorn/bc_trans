@@ -32,15 +32,11 @@ if st.button("Start Translation"):
         # Perform the translation on the filtered content
         translated_lines = []
         total_lines = len(lines)
-        skip_next_line = False
         translated_count = 0
 
         for i, line in enumerate(lines):
-            if skip_next_line:
-                skip_next_line = False
-                continue
-
-            if line.strip().endswith('</note>'):
+            if line.strip().startswith('<note'):
+                translated_lines.append(line)
                 continue
 
             if '<source>' in line:
@@ -49,7 +45,6 @@ if st.button("Start Translation"):
                 translated_lines.append(f'          <source>{source_text}</source>\n')
                 translated_lines.append(f'          <target>{translated_text}</target>\n')
                 translated_count += 1
-                skip_next_line = True
             else:
                 translated_lines.append(line)
 
