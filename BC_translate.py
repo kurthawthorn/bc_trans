@@ -33,19 +33,22 @@ if st.button("Start Translation"):
         translated_lines = []
         total_lines = len(lines)
         translated_count = 0
+        source_found = False
 
         for i, line in enumerate(lines):
-            if line.strip().startswith('<note'):
-                translated_lines.append(line)
-                continue
-
+            # Check if the line contains a <source> tag
             if '<source>' in line:
                 source_text = line.strip().replace('<source>', '').replace('</source>', '')
                 translated_text = translate_text(source_text, lang_code)
-                translated_lines.append(f'          <source>{source_text}</source>\n')
+                translated_lines.append(line)  # Keep the source line as it is
+                source_found = True
+            elif source_found and '<target>' in line:
+                # Replace the content within the <target> tag with the translated text
                 translated_lines.append(f'          <target>{translated_text}</target>\n')
                 translated_count += 1
+                source_found = False  # Reset for next <source>
             else:
+                # For all other lines, keep them unchanged
                 translated_lines.append(line)
 
             # Print progress every 100 lines
