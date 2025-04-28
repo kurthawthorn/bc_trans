@@ -26,10 +26,12 @@ if st.button("Start Translation"):
     if not input_file:
         st.error("No input file selected. Exiting.")
     else:
+        # Save original filename
+        original_filename = input_file.name
+
         # Read the content of the file
         lines = input_file.read().decode('utf-8').splitlines(keepends=True)
 
-        # Perform the translation on the filtered content
         translated_lines = []
         total_lines = len(lines)
         translated_count = 0
@@ -41,42 +43,46 @@ if st.button("Start Translation"):
             # Check if the line contains a <source> tag
             if '<source>' in line:
                 source_text = line.strip().replace('<source>', '').replace('</source>', '')
-                translated_text = translate_text(source_text, lang_code)
-                translated_lines.append(line)  # Keep the source line as it is
+                translated_lines.append(line)  # Keep the source line
                 i += 1  # Move to the next line which should be the <target> line
-                
-                # Check if the next line contains a <target> tag
+
                 if i < total_lines and '<target>' in lines[i]:
-                    # Preserve original indent
-                    indent = ' ' * (len(lines[i]) - len(lines[i].lstrip()))
-                    # Replace the content within the <target> tag with the translated text
-                    translated_lines.append(f'{indent}<target>{translated_text}</target>\n')
-                    translated_count += 1
+                    target_line = lines[i]
+
+                    if '[NAB: NOT TRANSLATED]' in target_line:
+                        # Only translate if target says "[NAB: NOT TRANSLATED]"
+                        indent = ' ' * (len(target_line) - len(target_line.lstrip()))
+                        translated_text = translate_text(source_text, lang_code)
+                        translated_lines.append(f'{indent}<target>{translated_text}</target>\n')
+                        translated_count += 1
+                    else:
+                        # Keep the existing translation
+                        translated_lines.append(target_line)
                 else:
-                    # If no <target> line found (unexpected case), log an error or handle it
-                    translated_lines.append(line)  # This is a fallback to ensure line isn't lost
+                    # If next line isn't a target (unexpected), just keep as-is
+                    translated_lines.append(line)
             else:
                 # For all other lines, keep them unchanged
                 translated_lines.append(line)
 
-            # Print progress every 100 lines
+            # Show progress every 100 lines
             if i % 100 == 0:
                 st.write(f'Translated {i}/{total_lines} lines')
-            
+
             i += 1  # Move to the next line
 
-        # Write the translated content to a new file
-        output_file_name = f'BeCentral.{lang_code}.xlf'
-        output_file_path = os.path.join("/tmp", output_file_name)
+        # Write the translated content to a new file (keeping the original name)
+        output_file_path = os.path.join("/tmp", original_filename)
         with open(output_file_path, 'w', encoding='utf-8') as file:
             file.writelines(translated_lines)
 
-        st.success(f"Translation completed. Translated {translated_count} out of {total_lines} lines.")
-        
+        st.success(f"Translation completed. Translated {translated_count} lines.")
+
+        # Offer download of the translated file
         with open(output_file_path, 'rb') as file:
-            btn = st.download_button(
+            st.download_button(
                 label="Download Translated XLF File",
                 data=file,
-                file_name=output_file_name,
+                file_name=original_filename,
                 mime='application/octet-stream'
             )
