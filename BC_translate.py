@@ -11,7 +11,7 @@ def translate_text(text, lang):
     return translation.text
 
 # Streamlit UI
-st.title("XLF Translator")
+st.title("XLF Translator v2.0")
 
 # Language selection
 st.write("Select the target language for translation:")
